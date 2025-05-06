@@ -16,6 +16,7 @@ public class Role {
     private Long id;
     @Enumerated(EnumType.STRING)
     private Authority authority;
+    
     public Role(Authority authority) {
         this.authority = authority;
     }
