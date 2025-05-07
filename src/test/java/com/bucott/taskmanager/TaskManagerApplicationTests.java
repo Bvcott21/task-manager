@@ -1,4 +1,4 @@
-package com.bucott.task_manager;
+package com.bucott.taskmanager;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
