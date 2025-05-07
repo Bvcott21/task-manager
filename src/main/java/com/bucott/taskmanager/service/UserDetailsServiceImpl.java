@@ -1,11 +1,13 @@
 package com.bucott.taskmanager.service;
 
-import com.bucott.taskmanager.model.User;
-import com.bucott.taskmanager.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import com.bucott.taskmanager.exception.UsernameOrEmailNotFoundException;
+import com.bucott.taskmanager.model.User;
+import com.bucott.taskmanager.repository.UserRepository;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -34,6 +36,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .authorities(user.getRoles().stream()
+                        .map(role -> role.getAuthority().name())
+                        .toArray(String[]::new))
+                .build();
+    }
+
+    public UserDetails loadUserByUsernameOrEmail(String identifier) throws UsernameOrEmailNotFoundException {
+        User user = userRepository.findByUsernameOrEmail(identifier)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + identifier));
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
