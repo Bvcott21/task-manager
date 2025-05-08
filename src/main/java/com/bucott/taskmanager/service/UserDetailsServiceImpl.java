@@ -7,7 +7,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.bucott.taskmanager.exception.AuthException;
+import com.bucott.taskmanager.exception.InvalidInputException;
 import com.bucott.taskmanager.exception.UsernameOrEmailNotFoundException;
+import com.bucott.taskmanager.model.Authority;
+import com.bucott.taskmanager.model.Role;
 import com.bucott.taskmanager.model.User;
 import com.bucott.taskmanager.repository.UserRepository;
 import com.bucott.taskmanager.util.JwtUtil;
@@ -84,6 +87,23 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String token = jwtUtil.generateToken(authenticatedUser.getUsername());
         return Map.of(
                 "user", authenticatedUser,
+                "token", token
+        );
+    }
+
+    @Override
+    public Map<String, Object> register(String username, String email, String password, String confirmPassword) throws InvalidInputException {
+        if (!password.equals(confirmPassword)) {
+            throw new InvalidInputException("Passwords do not match");
+        }
+
+        User user = new User(username, email, password);
+        user.getRoles().add(new Role(Authority.ROLE_USER));
+        userRepository.save(user);
+
+        String token = jwtUtil.generateToken(user.getUsername());
+        return Map.of(
+                "user", user,
                 "token", token
         );
     }

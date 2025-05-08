@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import com.bucott.taskmanager.exception.InvalidInputException;
 import com.bucott.taskmanager.exception.UsernameOrEmailNotFoundException;
 
 public interface UserDetailsService extends org.springframework.security.core.userdetails.UserDetailsService {
@@ -12,5 +13,6 @@ public interface UserDetailsService extends org.springframework.security.core.us
     public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException;
     public UserDetails loadUserByUsernameOrEmail(String identifier) throws UsernameNotFoundException;
     public Map<String, Object> authenticate(String identifier, String password) throws UsernameOrEmailNotFoundException;
+    public Map<String, Object> register(String username, String email, String password, String confirmPassword) throws InvalidInputException;
 
 }
