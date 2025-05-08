@@ -1,20 +1,25 @@
 package com.bucott.taskmanager.service;
 
+import java.util.Map;
+
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.bucott.taskmanager.exception.AuthException;
 import com.bucott.taskmanager.exception.UsernameOrEmailNotFoundException;
 import com.bucott.taskmanager.model.User;
 import com.bucott.taskmanager.repository.UserRepository;
+import com.bucott.taskmanager.util.JwtUtil;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
-    public UserDetailsServiceImpl(UserRepository userRepository) {
+    public UserDetailsServiceImpl(UserRepository userRepository, JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
     }
 
@@ -32,7 +37,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .build();
     }
 
-    // load by email
+    @Override
     public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
@@ -46,6 +51,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .build();
     }
 
+    @Override
     public UserDetails loadUserByUsernameOrEmail(String identifier) throws UsernameOrEmailNotFoundException {
         User user = userRepository.findByUsernameOrEmail(identifier)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + identifier));
@@ -57,5 +63,28 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         .map(role -> role.getAuthority().name())
                         .toArray(String[]::new))
                 .build();
+    }
+
+    @Override
+    public Map<String, Object> authenticate(String identifier, String password) throws UsernameOrEmailNotFoundException {
+        User user = userRepository.findByUsernameOrEmail(identifier)
+                .orElseThrow(() -> new UsernameOrEmailNotFoundException("User not found with username or email: " + identifier));
+
+        if (!user.getPassword().equals(password)) {
+            throw new AuthException("Invalid password for user: " + identifier);
+        }
+
+        User authenticatedUser = (User) org.springframework.security.core.userdetails.User.builder()
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .authorities(user.getRoles().stream()
+                        .map(role -> role.getAuthority().name())
+                        .toArray(String[]::new))
+                .build();
+        String token = jwtUtil.generateToken(authenticatedUser.getUsername());
+        return Map.of(
+                "user", authenticatedUser,
+                "token", token
+        );
     }
 }

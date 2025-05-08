@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
+import com.bucott.taskmanager.exception.AuthException;
 import com.bucott.taskmanager.exception.UsernameOrEmailNotFoundException;
 
 @ControllerAdvice
@@ -19,6 +20,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({UsernameNotFoundException.class, UsernameOrEmailNotFoundException.class})
     public ResponseEntity<Object> handleUserNotFoundExceptions(Exception ex, WebRequest request) {
         return buildErrorResponse(ex, "User not found", HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<Object> handleAuthException(AuthException ex, WebRequest request) {
+        return buildErrorResponse(ex, "Authentication Error", HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(Exception.class)
