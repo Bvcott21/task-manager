@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
 import com.bucott.taskmanager.exception.AuthException;
+import com.bucott.taskmanager.exception.InvalidInputException;
 import com.bucott.taskmanager.exception.UsernameOrEmailNotFoundException;
 
 @ControllerAdvice
@@ -20,6 +21,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({UsernameNotFoundException.class, UsernameOrEmailNotFoundException.class})
     public ResponseEntity<Object> handleUserNotFoundExceptions(Exception ex, WebRequest request) {
         return buildErrorResponse(ex, "User not found", HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidInputException.class)
+    public ResponseEntity<Object> handleInvalidInputException(InvalidInputException ex, WebRequest request) {
+        return buildErrorResponse(ex, "Invalid Input", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(AuthException.class)
