@@ -5,7 +5,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,8 +19,12 @@ public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     UserDetailsServiceImpl userDetailsService;
 
+    public AuthController(UserDetailsServiceImpl userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
+
     // login endpoint
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestParam String usernameOrEmail, @RequestParam String password) {
         logger.info("Login attempt for user: {}", usernameOrEmail);
         
@@ -31,7 +35,7 @@ public class AuthController {
     
 
     // register endpoint
-    @GetMapping("/register")
+    @PostMapping("/register")
     public ResponseEntity<?> register(@RequestParam String username, @RequestParam String email, @RequestParam String password
             , @RequestParam String confirmPassword) {
         logger.info("Register attempt for user: {}", username);

@@ -2,6 +2,8 @@ package com.bucott.taskmanager.service;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,8 @@ import com.bucott.taskmanager.util.JwtUtil;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
+
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
@@ -28,8 +32,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        logger.info("Attempting to load user by username: {}", username);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+        logger.info("User found: {}", user);
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
@@ -42,8 +48,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
+        logger.info("Attempting to load user by email: {}", email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        logger.info("User found: {}", user);
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())

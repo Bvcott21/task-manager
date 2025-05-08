@@ -1,9 +1,14 @@
 package com.bucott.taskmanager.model;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Collection;
 import java.util.stream.Collectors;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,8 +18,6 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity @Table(name = "users")
 @NoArgsConstructor @Data
@@ -25,7 +28,7 @@ public class User implements UserDetails {
     private String email;
     private String password;
 
-    @ManyToMany
+    @ManyToMany @Cascade(CascadeType.ALL)
     private Set<Role> roles = new HashSet<>();
     
     public User(String username, String email, String password) {
