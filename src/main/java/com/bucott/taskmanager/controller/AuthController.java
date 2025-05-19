@@ -1,16 +1,19 @@
 package com.bucott.taskmanager.controller;
 
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bucott.taskmanager.dto.auth.LoginRequestDTO;
+import com.bucott.taskmanager.dto.auth.LoginResponseDTO;
+import com.bucott.taskmanager.dto.auth.RegisterRequestDTO;
+import com.bucott.taskmanager.dto.auth.RegisterResponseDTO;
 import com.bucott.taskmanager.service.UserDetailsServiceImpl;
+
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -25,10 +28,10 @@ public class AuthController {
 
     // login endpoint
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String usernameOrEmail, @RequestParam String password) {
-        logger.info("Login attempt for user: {}", usernameOrEmail);
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
+        logger.info("Login attempt for user: {}", loginRequestDTO.getUsernameOrEmail());
         
-        Map<String, Object> response = userDetailsService.authenticate(usernameOrEmail, password);
+        LoginResponseDTO response = userDetailsService.authenticate(loginRequestDTO);
 
         return ResponseEntity.ok(response);
     }
@@ -36,16 +39,25 @@ public class AuthController {
 
     // register endpoint
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestParam String username, @RequestParam String email, @RequestParam String password
-            , @RequestParam String confirmPassword) {
-        logger.info("Register attempt for user: {}", username);
-        Map<String, Object> response = userDetailsService.register(username, email, password, confirmPassword);
+    public ResponseEntity<RegisterResponseDTO> register(@RequestBody RegisterRequestDTO registerRequestDTO) {
+        logger.info("Register attempt for user: {}", registerRequestDTO.getUsername());
+       
+        RegisterResponseDTO response = userDetailsService.register(registerRequestDTO);
         return ResponseEntity.ok(response);
     }            
 
     // refresh token endpoint
     
     // logout endpoint
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        logger.info("Logout attempt");
+
+        userDetailsService.invalidateToken();
+        
+        return ResponseEntity.ok().build();
+    }
+    
     
     // forgot password endpoint
     

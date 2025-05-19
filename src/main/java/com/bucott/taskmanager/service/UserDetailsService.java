@@ -1,10 +1,12 @@
 package com.bucott.taskmanager.service;
 
-import java.util.Map;
-
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import com.bucott.taskmanager.dto.auth.LoginRequestDTO;
+import com.bucott.taskmanager.dto.auth.LoginResponseDTO;
+import com.bucott.taskmanager.dto.auth.RegisterRequestDTO;
+import com.bucott.taskmanager.dto.auth.RegisterResponseDTO;
 import com.bucott.taskmanager.exception.InvalidInputException;
 import com.bucott.taskmanager.exception.UsernameOrEmailNotFoundException;
 
@@ -12,7 +14,8 @@ public interface UserDetailsService extends org.springframework.security.core.us
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
     public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException;
     public UserDetails loadUserByUsernameOrEmail(String identifier) throws UsernameNotFoundException;
-    public Map<String, Object> authenticate(String identifier, String password) throws UsernameOrEmailNotFoundException;
-    public Map<String, Object> register(String username, String email, String password, String confirmPassword) throws InvalidInputException;
+    public LoginResponseDTO authenticate(LoginRequestDTO requestDto) throws UsernameOrEmailNotFoundException;
+    public RegisterResponseDTO register(RegisterRequestDTO requestDto) throws InvalidInputException;
+    public void invalidateToken();
 
 }

@@ -37,14 +37,19 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET,
-                    "/api/v1/auth/**",
+                // allow auth endpoints without authentication
+                .requestMatchers("/api/v1/auth/**").permitAll()
+                // allow Swagger UI and API docs
+                .requestMatchers(
                     "/v3/api-docs",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
+                    "/swagger-ui/index.html",
                     "/webjars/**"
                 ).permitAll()
+                // allow preflight requests
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
