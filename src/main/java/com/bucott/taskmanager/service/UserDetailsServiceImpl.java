@@ -81,23 +81,17 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public LoginResponseDTO authenticate(LoginRequestDTO requestDto) throws UsernameOrEmailNotFoundException {
         User user = userRepository.findByUsernameOrEmail(requestDto.getUsernameOrEmail())
-                .orElseThrow(() -> new UsernameOrEmailNotFoundException("User not found with username or email: " + requestDto.getUsernameOrEmail()));
-
-        if (!user.getPassword().equals(requestDto.getPassword())) {
+                .orElseThrow(() -> new UsernameOrEmailNotFoundException("User not found with username or email: " + requestDto.getUsernameOrEmail()));     
+        
+        if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())) {
             throw new AuthException("Invalid password for user: " + requestDto.getUsernameOrEmail());
         }
 
-        User authenticatedUser = (User) org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUsername())
-                .password(user.getPassword())
-                .authorities(user.getRoles().stream()
-                        .map(role -> role.getAuthority().name())
-                        .toArray(String[]::new))
-                .build();
-        String token = jwtUtil.generateToken(authenticatedUser.getUsername());
+        String token = jwtUtil.generateToken(user.getUsername());
+
         return LoginResponseDTO.builder()
-                .username(authenticatedUser.getUsername())
-                .email(authenticatedUser.getEmail())
+                .username(user.getUsername())
+                .email(user.getEmail())
                 .token(token)
                 .build();
     }
@@ -116,7 +110,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 throw new InvalidInputException("Passwords do not match");
         }
         String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
-        
+
         User user = new User(requestDto.getUsername(), requestDto.getEmail(), encodedPassword);
         user.getRoles().add(new Role(Authority.ROLE_USER));
         user = userRepository.save(user);
