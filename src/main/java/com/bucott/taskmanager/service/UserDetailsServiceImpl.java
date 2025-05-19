@@ -112,7 +112,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 throw new InvalidInputException("Email already exists");
         }
 
-        if (requestDto.getPassword().equals(requestDto.getConfirmPassword())) {
+        if (!requestDto.getPassword().equals(requestDto.getConfirmPassword())) {
                 throw new InvalidInputException("Passwords do not match");
         }
 

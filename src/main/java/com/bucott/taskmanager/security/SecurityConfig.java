@@ -7,7 +7,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.http.HttpMethod;
 
 import com.bucott.taskmanager.service.UserDetailsServiceImpl;
 import com.bucott.taskmanager.util.JwtUtil;
@@ -36,20 +35,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
+            // Allow H2 console to render its frames
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .authorizeHttpRequests(auth -> auth
-                // allow auth endpoints without authentication
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                // allow Swagger UI and API docs
                 .requestMatchers(
-                    "/v3/api-docs",
+                    "/api/v1/auth/**",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
-                    "/swagger-ui/index.html",
-                    "/webjars/**"
+                    "/webjars/**",
+                    "/h2-console/**"
                 ).permitAll()
-                // allow preflight requests
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
