@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.bucott.taskmanager.dto.auth.LoginRequestDTO;
@@ -26,10 +27,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private PasswordEncoder passwordEncoder;
 
-    public UserDetailsServiceImpl(UserRepository userRepository, JwtUtil jwtUtil) {
+    public UserDetailsServiceImpl(UserRepository userRepository, JwtUtil jwtUtil, PasswordEncoder passwordEncoder) {
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -41,7 +44,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
-                .password(user.getPassword())
                 .authorities(user.getRoles().stream()
                         .map(role -> role.getAuthority().name())
                         .toArray(String[]::new))
@@ -57,7 +59,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
-                .password(user.getPassword())
                 .authorities(user.getRoles().stream()
                         .map(role -> role.getAuthority().name())
                         .toArray(String[]::new))
@@ -71,7 +72,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
-                .password(user.getPassword())
                 .authorities(user.getRoles().stream()
                         .map(role -> role.getAuthority().name())
                         .toArray(String[]::new))
@@ -115,8 +115,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (!requestDto.getPassword().equals(requestDto.getConfirmPassword())) {
                 throw new InvalidInputException("Passwords do not match");
         }
-
-        User user = new User(requestDto.getUsername(), requestDto.getEmail(), requestDto.getPassword());
+        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+        
+        User user = new User(requestDto.getUsername(), requestDto.getEmail(), encodedPassword);
         user.getRoles().add(new Role(Authority.ROLE_USER));
         user = userRepository.save(user);
 
