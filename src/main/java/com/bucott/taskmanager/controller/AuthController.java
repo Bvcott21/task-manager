@@ -14,8 +14,18 @@ import com.bucott.taskmanager.dto.auth.RegisterRequestDTO;
 import com.bucott.taskmanager.dto.auth.RegisterResponseDTO;
 import com.bucott.taskmanager.service.UserDetailsServiceImpl;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/v1/auth")
+@Tag(
+    name = "Authentication", 
+    description = "Authentication and authorization endpoints"
+)
 public class AuthController {
     // logging dependency
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
@@ -25,7 +35,23 @@ public class AuthController {
         this.userDetailsService = userDetailsService;
     }
 
-    // login endpoint
+    
+    @Operation(
+        summary = "Login",
+        description = "Authenticate a user and return a JWT token",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", 
+                description = "Successful login",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = LoginResponseDTO.class)
+                )
+            ),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+            @ApiResponse(responseCode = "400", description = "Bad request")
+        }
+    )
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
         logger.info("Login attempt for user: {}", loginRequestDTO.getUsernameOrEmail());
@@ -37,6 +63,20 @@ public class AuthController {
     
 
     // register endpoint
+    @Operation(
+        summary = "Register",
+        description = "Register a new user",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", description = "Successful registration",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = RegisterResponseDTO.class)
+                )
+            ),
+            @ApiResponse(responseCode = "400", description = "Bad request")
+        }
+    )
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDTO> register(@RequestBody RegisterRequestDTO registerRequestDTO) {
         logger.info("Register attempt for user: {}", registerRequestDTO.getUsername());
