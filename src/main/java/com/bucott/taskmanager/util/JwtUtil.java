@@ -3,6 +3,8 @@ package com.bucott.taskmanager.util;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.stereotype.Component;
@@ -10,13 +12,14 @@ import org.springframework.stereotype.Component;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
     private final String SECRET_KEY;
-    private final long EXPIRATION_TIME = 86400000; // 1 day in milliseconds
-   
+    private final long EXPIRATION_TIME = 86400000; // 1 day in milliseconds)
+
     public JwtUtil() {
         Dotenv dotenv = Dotenv.load();
         this.SECRET_KEY = dotenv.get("JWT_SECRET_KEY");
@@ -28,19 +31,30 @@ public class JwtUtil {
     }
 
     // Generate a token with a username as a subject
-    public String generateToken(String username) {
+    public String generateToken(String username, String email) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("email", email);
+        return createToken(claims, username);
+    }
+
+    private String createToken(Map<String, Object> claims, String subject) {
         return Jwts
             .builder()
-            .setSubject(username)
-            .setIssuedAt(new Date())
+            .setClaims(claims)
+            .setSubject(subject)
+            .setIssuedAt(new Date(System.currentTimeMillis()))
             .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-            .signWith(getSigningKey())
+            .signWith(getSigningKey(), SignatureAlgorithm.HS256)
             .compact();
     }
 
     // Extract username from token
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public String extractEmail(String token) {
+        return extractClaim(token, claims -> claims.get("email", String.class));
     }
 
     // Extract a specific claim using a claims resolver function

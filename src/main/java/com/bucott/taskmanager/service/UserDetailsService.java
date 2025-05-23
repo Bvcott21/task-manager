@@ -10,12 +10,13 @@ import com.bucott.taskmanager.dto.auth.RegisterResponseDTO;
 import com.bucott.taskmanager.exception.InvalidInputException;
 import com.bucott.taskmanager.exception.UsernameOrEmailNotFoundException;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 public interface UserDetailsService extends org.springframework.security.core.userdetails.UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
     public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException;
     public UserDetails loadUserByUsernameOrEmail(String identifier) throws UsernameNotFoundException;
-    public LoginResponseDTO authenticate(LoginRequestDTO requestDto) throws UsernameOrEmailNotFoundException;
-    public RegisterResponseDTO register(RegisterRequestDTO requestDto) throws InvalidInputException;
-    public void invalidateToken();
+    public LoginResponseDTO authenticate(LoginRequestDTO requestDto, HttpServletResponse response) throws UsernameOrEmailNotFoundException;
+    public RegisterResponseDTO register(RegisterRequestDTO requestDto, HttpServletResponse response) throws InvalidInputException;
 
 }

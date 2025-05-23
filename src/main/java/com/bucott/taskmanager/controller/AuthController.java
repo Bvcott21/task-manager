@@ -1,8 +1,12 @@
 package com.bucott.taskmanager.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +23,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -53,12 +59,18 @@ public class AuthController {
         }
     )
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequestDTO, HttpServletResponse response) {
         logger.info("Login attempt for user: {}", loginRequestDTO.getUsernameOrEmail());
         
-        LoginResponseDTO response = userDetailsService.authenticate(loginRequestDTO);
-
-        return ResponseEntity.ok(response);
+        try {
+            var loginResponse = userDetailsService.authenticate(loginRequestDTO, response);
+            return ResponseEntity.ok(loginResponse);
+        } catch(Exception e) {
+            Map<String, Object> errorResponse = Map.of("error", e.getMessage());
+            errorResponse.put("message", "Login failed: " + e.getMessage());
+            errorResponse.put("success", false);
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
     
 
@@ -78,30 +90,48 @@ public class AuthController {
         }
     )
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponseDTO> register(@RequestBody RegisterRequestDTO registerRequestDTO) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequestDTO registerRequestDTO, HttpServletResponse response) {
         logger.info("Register attempt for user: {}", registerRequestDTO.getUsername());
        
-        RegisterResponseDTO response = userDetailsService.register(registerRequestDTO);
-        return ResponseEntity.ok(response);
+        try {
+            var registerResponse = userDetailsService.register(registerRequestDTO, response);
+            return ResponseEntity.ok(registerResponse);
+        } catch(Exception e) {
+            Map<String, Object> errorResponse = Map.of("error", e.getMessage());
+            errorResponse.put("message", "Registration failed: " + e.getMessage());
+            errorResponse.put("success", false);
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }            
 
     // refresh token endpoint
     
     // logout endpoint
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
+    public ResponseEntity<?> logout(HttpServletResponse response) {
         logger.info("Logout attempt");
 
-        userDetailsService.invalidateToken();
-        
-        return ResponseEntity.ok().build();
+        userDetailsService.logout(response);
+        Map<String, Object> logoutResponse = Map.of("message", "Logout successful");
+        logoutResponse.put("success", true);
+
+        return ResponseEntity.ok(logoutResponse);
     }
     
-    
-    // forgot password endpoint
-    
-    // reset password endpoint
-    
-    // change password endpoint
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
+        var userInfo = userDetailsService.getCurrentUser(request);
+        return ResponseEntity.ok(userInfo);
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyToken(HttpServletRequest request) {
+        boolean isValid = userDetailsService.validateTokenFromCookie(request.getCookies());
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("authenticated", isValid);
+
+        return ResponseEntity.ok(responseBody);
+    }
     
 }
